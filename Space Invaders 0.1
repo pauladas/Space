@@ -1,0 +1,510 @@
+TITLE SpaceInvaders
+.MODEL	SMALL
+.STACK	100H
+.DATA		
+;----------------------------------------------------------TEXTURAS FULL HD------------------------------------------------------------;
+					
+						;0,1,2,3,4,5,6,7
+			ALIEN1	DB	7,0,0,0,0,0,0,7;0
+					DB	0,7,0,0,0,0,7,0;1
+					DB	0,0,7,7,7,7,0,0;2
+					DB	0,0,0,7,7,0,0,0;3
+					DB	0,0,7,7,7,7,0,0;4
+					DB	0,7,7,7,7,7,7,0;5
+					DB	0,7,0,7,7,0,7,0;6
+					DB	7,0,7,7,7,7,0,7;7		
+					
+					
+					   ;0,1,2,3,4,5,6,7
+			ALIEN2	DB	0,0,7,7,7,7,0,0;0
+	                DB	0,7,0,7,7,0,7,0;1
+                    DB	7,7,0,7,7,0,7,7;2
+                    DB	7,7,0,7,7,0,7,7;3
+                    DB	0,0,7,7,7,7,0,0;4
+                    DB	0,7,7,0,0,7,7,0;5
+	                DB	0,7,0,7,7,0,7,0;6
+					DB	7,0,0,0,0,0,0,7;7
+					
+					
+					   ;0,1,2,3,4,5,6,7
+			ALIEN3	DB	0,0,7,7,7,7,0,0;0
+	                DB	0,7,0,7,7,0,7,0;1
+                    DB	7,0,0,7,7,0,0,7;2
+                    DB	0,0,0,7,7,0,0,0;3
+                    DB	0,7,7,7,7,7,7,0;4
+                    DB	0,7,0,7,7,0,7,0;5
+	                DB	7,0,0,7,7,0,0,7;6
+					DB	7,0,7,0,0,7,0,7;7
+					
+					
+					   ;0,1,2,3,4,5,6,7
+			NAVE    DB	0,0,0,1,1,0,0,0;0
+			        DB	0,0,0,1,1,0,0,0;1
+			        DB	0,0,0,1,1,0,0,0;2
+			        DB	0,0,1,1,1,1,0,0;3
+			        DB	0,0,1,1,1,1,0,0;4
+			        DB	0,1,1,1,1,1,1,0;5
+					DB	1,1,1,1,1,1,1,1;6
+					DB	1,1,1,1,1,1,1,1;7
+					
+					   ;0,1,2,3,4,5,6,7
+			PEDRAS	DB	0,0,0,0,0,0,0,0;0
+			        DB	0,0,0,0,0,0,0,0;1
+			        DB	2,2,2,2,2,2,2,2;2
+			        DB	2,2,2,2,2,2,2,2;3
+			        DB	2,2,2,2,2,2,2,2;4
+			        DB	2,2,2,2,2,2,2,2;5
+			        DB	2,2,2,2,2,2,2,2;6
+			        DB	0,0,0,0,0,0,0,0;7
+					
+					
+;--------------------------------------------------------------------------------------------------------------------------------------;
+		
+			;Mensagem inicio			
+			MSG1			DB	"SPACE INVADERS - 8086"
+			MSG_TAMANHO1 	EQU $-MSG1
+			MSG_CENTRO1 	EQU 20 - (MSG_TAMANHO1/2)
+			
+			;Mensagem inicio
+			MSG2			DB "APERTE A"
+			MSG_TAMANHO2	EQU $-MSG2
+			MSG_CENTRO2		EQU 20 - (MSG_TAMANHO2/2)
+			
+			;Mensagem inicio
+			MSG3			DB	"PARA INICIAR"
+			MSG_TAMANHO3	EQU	$-MSG3
+			MSG_CENTRO3	 	EQU	20 - (MSG_TAMANHO3/2)
+			
+			;Mensagem sair
+			MSG4			DB	"APERTE X PARA SAIR"
+			MSG_TAMANHO4	EQU	$-MSG4
+			MSG_CENTRO4	 	EQU	20 - (MSG_TAMANHO4/2)
+			
+			
+;---------------------------------------------------------------------------------			
+			
+			
+			COORDENADAX		DW	0
+			COORDENADAY		DW	0
+			
+			NAVEX			DW	156
+			NAVEY			DW	180
+			
+			
+;---------------------------------------------------------------------------------			
+.CODE
+
+;=======================================================================================================================================
+;------------------------------------------------------------MAIN-----------------------------------------------------------------------
+;=======================================================================================================================================
+MAIN PROC
+			MOV 	AX,@DATA			;inicializa variáveis
+			MOV 	DS,AX
+			MOV		ES,AX
+			
+			MOV		AH,0				;inicializa modo de video
+			MOV		AL,13H				;320x200 - 8 bits
+			INT		10H
+;---------------------------------------------------------------------------------
+			CALL 	PRINTAINICIO		;escreve mensagem de inicio
+			
+I3:			MOV 	AH,0				;pega letra
+			INT 	16H
+			
+			CMP		AL,'x'				;é "x"?
+			JE		I1					;se sim sair
+			
+			CMP		AL,'a'				;é "a"?
+			JE		I2					;se sim iniciar
+			JMP		I3					;se n continuar na tela de inicio
+			
+I1:			CALL	SAIR				;sair
+
+;---------------------------------------------------------------------------------			
+
+I2:			CALL 	LIMPARTELA
+			
+			MOV		COORDENADAX,66
+			MOV		COORDENADAY,20
+			
+			CALL	PRINTATUDOALIEN
+			CALL	PRINTARNAVE
+			
+			MOV		AH,0H
+			INT 	16H
+			
+			CALL	SAIR
+
+MAIN ENDP
+
+;=======================================================================================================================================
+;---------------------------------------------------------LIMPAR A TELA-----------------------------------------------------------------
+;=======================================================================================================================================
+LIMPARTELA PROC
+			
+			PUSH	AX					;Salva registradores
+			PUSH	BX					
+			PUSH	CX
+			PUSH	DX
+			
+			MOV		AX,0A000H
+			MOV		ES,AX
+			XOR		DI,DI
+			XOR		AX,AX
+			MOV		CX,32000
+			CLD
+			REP		STOSW
+
+			POP		DX					;retorna registradores salvos
+			POP		CX
+			POP		BX
+			POP		AX
+			
+			RET
+LIMPARTELA ENDP
+
+;=======================================================================================================================================
+;---------------------------------------------------------PRINTAR NAVE------------------------------------------------------------------
+;=======================================================================================================================================
+PRINTARNAVE	PROC
+			
+			PUSH	AX					;Salva registradores
+			PUSH	BX
+			PUSH	CX
+			PUSH	DX
+			
+			XOR		AX,AX				;Zera registradores que serão usados
+			XOR		BX,BX
+			
+			MOV 	CX,NAVEX			;coordenadas q estará a nave
+			MOV		DX,NAVEY
+			
+			ADD 	NAVEX,8		;varialvel para comparação do fim da memória
+			ADD		NAVEY,8
+			
+NV11:		MOV 	AL,[NAVE + BX]	;cor do pixel seguinte do alien
+
+			MOV		AH,0CH				;função para printar cor
+			INT		10H
+			
+			INC		CX					;próxima coordenada do pixel
+			INC		BX
+			
+			CMP		CX,NAVEX			;ja chegou no final da coluna?
+			JE		NV12
+			JMP		NV11
+			
+NV12:		INC		DX					;incrementa a linha
+			SUB		CX,8				;zera coluna
+			
+			CMP		DX,NAVEY			;ja chegou no final das linhas?
+			JE		NV13
+			JMP		NV11
+							
+NV13:		SUB		NAVEX,8		;retorna coordenadas para valor inicial
+			SUB		NAVEY,8
+						
+	
+			POP		DX					;retorna registradores salvos
+			POP		CX
+			POP		BX
+			POP		AX
+			
+			RET	
+			
+PRINTARNAVE ENDP
+
+;=======================================================================================================================================
+;------------------------------------------------PRINTAR TODOS OS ALIENS----------------------------------------------------------------
+;=======================================================================================================================================
+PRINTATUDOALIEN PROC
+			;Entra com coodenadas x e y e printa os aliens
+			
+			PUSH	AX					;Salva registradores
+			PUSH	BX
+			PUSH	CX
+			PUSH	DX
+			
+			MOV		AX,COORDENADAX		;valor de printar até aonde em relação a coordenada x introduzida
+			ADD		AX,176
+
+;------------------------------------------------PRINTAR LINHA 1------------------------------------------------------------------------
+			
+B11:		CALL	PRINTAALIEN1		;printa o alien 1
+			
+			ADD		COORDENADAX,16		;printa próximo alien a 16 pixels do anterior
+			
+			CMP		COORDENADAX,AX		;compara se foram printados 11 aliens
+			JA		B21
+			MOV		CX,2
+			JMP		B11			
+			
+;------------------------------------------------PRINTAR LINHA 2------------------------------------------------------------------------
+			
+B21:		SUB		COORDENADAX,192		;restaura coordenada x
+
+			ADD		COORDENADAY,10		;próxima linha de aliens
+			
+B22:		CALL	PRINTAALIEN2		;printa o alien 2
+			
+			ADD		COORDENADAX,16		;printa próximo alien a 16 pixels do anterior
+			
+			CMP		COORDENADAX,AX		;compara se foram printados 11 aliens
+			JA		B31
+			JMP		B22
+		
+;------------------------------------------------PRINTAR LINHA 3------------------------------------------------------------------------
+
+B31:		SUB		COORDENADAX,192		;restaura coordenada x
+
+			ADD		COORDENADAY,10		;próxima linha de aliens
+			
+B32:		CALL	PRINTAALIEN2		;printa o alien 2
+			
+			ADD		COORDENADAX,16		;printa próximo alien a 16 pixels do anterior
+			
+			CMP		COORDENADAX,AX		;compara se foram printados 11 aliens
+			JA		B41
+			JMP		B32
+
+;------------------------------------------------PRINTAR LINHA 4------------------------------------------------------------------------
+
+B41:		SUB		COORDENADAX,192		;restaura coordenada x	
+				
+			ADD		COORDENADAY,10		;próxima linha de aliens
+			
+B42:		CALL	PRINTAALIEN3		;printa o alien 2
+			
+			ADD		COORDENADAX,16		;printa próximo alien a 16 pixels do anterior
+			
+			CMP		COORDENADAX,AX		;compara se foram printados 11 aliens
+			JA		B51
+			JMP		B42
+				
+;------------------------------------------------PRINTAR LINHA 5------------------------------------------------------------------------
+
+B51:	SUB		COORDENADAX,192		;restaura coordenada x	
+				
+			ADD		COORDENADAY,10		;próxima linha de aliens
+			
+B52:		CALL	PRINTAALIEN3		;printa o alien 2
+			
+			ADD		COORDENADAX,16		;printa próximo alien a 16 pixels do anterior
+			
+			CMP		COORDENADAX,AX		;compara se foram printados 11 aliens
+			JA		B6
+			JMP		B52
+			
+;---------------------------------------------------------------------------------------------------------------------------------------			
+			
+B6:			SUB		COORDENADAX,192		;restaura coordenada X
+			SUB		COORDENADAY,40		;restaura coordenada Y
+
+			POP		DX					;retorna registradores salvos
+			POP		CX
+			POP		BX
+			POP		AX
+			
+			RET
+			
+			
+PRINTATUDOALIEN ENDP
+
+;=======================================================================================================================================
+;------------------------------------------------PRINTAR ALIEN 1, 2 e 3-----------------------------------------------------------------
+;=======================================================================================================================================
+PRINTAALIEN1 PROC
+
+			PUSH	AX					;Salva registradores
+			PUSH	BX
+			PUSH	CX
+			PUSH	DX
+			
+			XOR		AX,AX				;Zera registradores que serão usados
+			XOR		BX,BX
+			
+			MOV 	CX,COORDENADAX		;coordenadas q estará o alien
+			MOV		DX,COORDENADAY
+			
+			ADD 	COORDENADAX,8		;varialvel para comparação do fim da memória
+			ADD		COORDENADAY,8
+			
+AL11:		MOV 	AL,[ALIEN1 + BX]	;cor do pixel seguinte do alien
+
+			MOV		AH,0CH				;função para printar cor
+			INT		10H
+			
+			INC		CX					;próxima coordenada do pixel
+			INC		BX
+			
+			CMP		CX,COORDENADAX		;ja chegou no final da coluna?
+			JE		AL12
+			JMP		AL11
+			
+AL12:		INC		DX					;incrementa a linha
+			SUB		CX,8				;zera coluna
+			
+			CMP		DX,COORDENADAY		;ja chegou no final das linhas?
+			JE		AL13
+			JMP		AL11
+							
+AL13:		SUB		COORDENADAX,8		;retorna coordenadas para valor inicial
+			SUB		COORDENADAY,8
+			
+			POP		DX					;retorna registradores salvos
+			POP		CX
+			POP		BX
+			POP		AX
+			
+			RET
+
+PRINTAALIEN1 ENDP
+;---------------------------------------------------------------------------------------------------------------------------------------
+PRINTAALIEN2 PROC
+
+			PUSH	AX					;Salva registradores
+			PUSH	BX
+			PUSH	CX
+			PUSH	DX
+			
+			XOR		AX,AX				;Zera registradores que serão usados
+			XOR		BX,BX
+			
+			MOV 	CX,COORDENADAX		;coordenadas q estará o alien
+			MOV		DX,COORDENADAY
+			
+			ADD 	COORDENADAX,8		;varialvel para comparação do fim da memória
+			ADD		COORDENADAY,8
+			
+AL21:		MOV 	AL,[ALIEN2 + BX]	;cor do pixel seguinte do alien
+
+			MOV		AH,0CH				;função para printar cor
+			INT		10H
+			
+			INC		CX					;próxima coordenada do pixel
+			INC		BX
+			
+			CMP		CX,COORDENADAX		;ja chegou no final da coluna?
+			JE		AL22
+			JMP		AL21
+			
+AL22:		INC		DX					;incrementa a linha
+			SUB		CX,8				;zera coluna
+			
+			CMP		DX,COORDENADAY		;ja chegou no final das linhas?
+			JE		AL23
+			JMP		AL21
+							
+AL23:		SUB		COORDENADAX,8		;retorna coordenadas para valor inicial
+			SUB		COORDENADAY,8
+			
+			POP		DX					;retorna registradores salvos
+			POP		CX
+			POP		BX
+			POP		AX
+			
+			RET
+
+PRINTAALIEN2 ENDP
+;---------------------------------------------------------------------------------------------------------------------------------------
+PRINTAALIEN3 PROC
+
+			PUSH	AX					;Salva registradores
+			PUSH	BX
+			PUSH	CX
+			PUSH	DX
+			
+			XOR		AX,AX				;Zera registradores que serão usados
+			XOR		BX,BX
+			
+			MOV 	CX,COORDENADAX		;coordenadas q estará o alien
+			MOV		DX,COORDENADAY
+			
+			ADD 	COORDENADAX,8		;varialvel para comparação do fim da memória
+			ADD		COORDENADAY,8
+			
+AL31:		MOV 	AL,[ALIEN3 + BX]	;cor do pixel seguinte do alien
+
+			MOV		AH,0CH				;função para printar cor
+			INT		10H
+			
+			INC		CX					;próxima coordenada do pixel
+			INC		BX
+			
+			CMP		CX,COORDENADAX		;ja chegou no final da coluna?
+			JE		AL32
+			JMP		AL31
+			
+AL32:		INC		DX					;incrementa a linha
+			SUB		CX,8				;zera coluna
+			
+			CMP		DX,COORDENADAY		;ja chegou no final das linhas?
+			JE		AL33
+			JMP		AL31
+							
+AL33:		SUB		COORDENADAX,8		;retorna coordenadas para valor inicial
+			SUB		COORDENADAY,8
+			
+			POP		DX					;retorna registradores salvos
+			POP		CX
+			POP		BX
+			POP		AX
+			
+			RET
+
+PRINTAALIEN3 ENDP
+
+
+;=======================================================================================================================================
+;------------------------------------------------PRINTAR MENSAGEM DE INICIO-------------------------------------------------------------
+;=======================================================================================================================================
+PRINTAINICIO PROC
+
+			MOV AX,1300H
+			MOV BX,04H
+			MOV DH,10;linha
+			MOV DL,MSG_CENTRO1;coluna
+			MOV CX,MSG_TAMANHO1
+			LEA BP,MSG1
+			INT 10H
+			
+			
+			MOV AX,1300H
+			MOV BX,02H
+			MOV DH,12;linha
+			MOV DL,MSG_CENTRO2;coluna
+			MOV CX,MSG_TAMANHO2
+			LEA BP,MSG2
+			INT 10H
+			
+			
+			MOV AX,1300H
+			MOV BX,02H
+			MOV DH,13;linha
+			MOV DL,MSG_CENTRO3;coluna
+			MOV CX,MSG_TAMANHO3
+			LEA BP,MSG3
+			INT 10H
+			
+			MOV AX,1300H
+			MOV BX,0FH
+			MOV DH,16;linha
+			MOV DL,MSG_CENTRO4;coluna
+			MOV CX,MSG_TAMANHO4
+			LEA BP,MSG4
+			INT 10H
+			
+			RET
+			
+PRINTAINICIO ENDP
+
+
+;=======================================================================================================================================
+;-------------------------------------------------------------SAIR----------------------------------------------------------------------
+;=======================================================================================================================================
+SAIR PROC
+			MOV		AH,4CH
+			INT 	21H
+SAIR ENDP
+
+END MAIN
